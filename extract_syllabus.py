@@ -25,6 +25,9 @@ def extract_unit_name_from_objective(objective_text):
     - "Understand the types of parasites causing infections..." -> "Parasitic Infections"
     - "To develop skills in the diagnosis of parasitic infections" -> "Parasitic Diagnosis Techniques"
     """
+    if not objective_text or len(objective_text.strip()) < 5:
+        return "Unit Content"
+    
     text_lower = objective_text.lower()
     
     # Define patterns and corresponding short names
@@ -40,31 +43,59 @@ def extract_unit_name_from_objective(objective_text):
         return "Parasitic Diagnosis Techniques"
     else:
         # Fallback: extract key nouns and create a generic name
-        # Remove common starter phrases
-        text = objective_text
-        for phrase in ["To gain knowledge on", "To gain knowledge about", "To understand", 
-                       "To develop skills in", "Understand the", "Explain", "Discuss", 
-                       "Illustrate", "Acquire knowledge on", "Demonstrate", "Impart knowledge",
-                       "To learn", "To study", "To acquire", "To gain", "Learning objectives"]:
-            if text.startswith(phrase):
-                text = text[len(phrase):].strip()
-                break
+        # Remove common starter phrases (case-insensitive)
+        text = objective_text.strip()
+        
+        # List of phrases to remove (in order of length, longest first for better matching)
+        starter_phrases = [
+            "To gain knowledge on", "To gain knowledge about", "To gain knowledge",
+            "To develop skills in", "To develop skills", 
+            "Gain knowledge on", "Gain knowledge about", "Gain knowledge",
+            "Learn the", "Learn to", "Learn about", "Learn",
+            "To understand the", "To understand", "Understand the", "Understand",
+            "To acquire knowledge on", "To acquire knowledge", "Acquire knowledge",
+            "To study the", "To study", "Study the", "Study",
+            "Explain the", "Explain", "Discuss the", "Discuss",
+            "Illustrate the", "Illustrate", "Demonstrate the", "Demonstrate",
+            "Impart knowledge on", "Impart knowledge", 
+            "Practice the", "Practice", "Observe the", "Observe",
+            "Learning objectives:", "Learning objective:",
+            "The", "A", "An"
+        ]
+        
+        # Try removing phrases iteratively (some objectives have multiple)
+        changed = True
+        while changed:
+            changed = False
+            for phrase in starter_phrases:
+                if text.lower().startswith(phrase.lower()):
+                    text = text[len(phrase):].strip()
+                    # Remove leading comma, colon, dash, or "on/about" connectors
+                    text = text.lstrip(',:- ')
+                    # If it starts with "on " or "about " after removal, remove those too
+                    if text.lower().startswith("on "):
+                        text = text[3:].strip()
+                    elif text.lower().startswith("about "):
+                        text = text[6:].strip()
+                    changed = True
+                    break
         
         # Take first 5-8 words and capitalize, but stop at natural boundaries
         words = text.split()[:8]  # Take up to 8 words
         short_name = ' '.join(words)
         
         # Remove trailing connectors and punctuation
-        while short_name and short_name.split()[-1].lower() in ['and', 'or', 'the', 'of', 'in', 'on', 'with', 'to']:
+        while short_name and short_name.split()[-1].lower() in ['and', 'or', 'the', 'of', 'in', 'on', 'with', 'to', 'for', 'by', 'at']:
             short_name = ' '.join(short_name.split()[:-1])
         
-        # Remove trailing commas and periods
-        short_name = short_name.rstrip(',.')
+        # Remove trailing commas, periods, and other punctuation
+        short_name = short_name.rstrip(',.;:- ')
         
-        # If still empty or too short, use first topic content
-        if not short_name or len(short_name) < 10:
-            return f"Unit Content"
+        # If still empty or too short, return generic name
+        if not short_name or len(short_name) < 5:
+            return "Unit Content"
         
+        # Capitalize properly (title case)
         return short_name.title()
 
 def extract_syllabus(pdf_path):
@@ -228,21 +259,8 @@ def extract_syllabus(pdf_path):
         if current_topic.strip():
             topics.append(current_topic.strip())
         
-        # Remove the first topic if it's too similar to the unit name
-        unit_num = unit["Unit_Number"]
-        default_name = f"Unit {int_to_roman.get(unit_num, str(unit_num))}"
-        
-        if topics and unit["Unit_Name"] != default_name:
-            # First topic might be redundant, check similarity
-            first_topic_lower = topics[0].lower()
-            unit_name_lower = unit["Unit_Name"].lower()
-            
-            # If first topic starts with same words as unit name, skip it
-            unit_words = unit_name_lower.split()[:3]
-            topic_words = first_topic_lower.split()[:3]
-            
-            if unit_words == topic_words or topics[0] in unit["Unit_Name"]:
-                topics = topics[1:]  # Skip first topic
+        # Don't remove first topic - it contains actual content
+        # The unit name is derived from course objectives, not from topics
         
         final_units.append({
             "Unit_Number": unit["Unit_Number"],
