@@ -1,57 +1,57 @@
 # BSC Course Content Generator
 
-Generate rich academic study material from syllabus PDFs using a twoâ€‘stage pipeline:
+Generate rich academic study material from syllabus PDFs using a two‑stage pipeline:
 
-1. Extract: `extract_syllabus.py` â†’ builds individual course JSONs in `output/course_json/` + PDF summaries
-2. Generate: `app.py` â†’ produces perâ€‘topic JSON + consolidated `courseDataMap.js`
+1. Extract: `extract_syllabus.py` → builds individual course JSONs in `output/course_json/` + PDF summaries
+2. Generate: `app.py` → produces per‑topic JSON + consolidated `courseDataMap.js`
 
-## ðŸ” Overview
+## 🔍 Overview
 
-This project lets you drop multiple syllabus PDFs in `input/`, automatically parse unit/topic structures with resources (textbooks, references, web links) and course outcomes, generate PDF summaries, and then use a local Ollama model to create deep postgraduateâ€‘level educational content (notes, formulas, realâ€‘world applications) per topic.
+This project lets you drop multiple syllabus PDFs in `input/`, automatically parse unit/topic structures with resources (textbooks, references, web links) and course outcomes, generate PDF summaries, and then use a local Ollama model to create deep postgraduate‑level educational content (notes, formulas, real‑world applications) per topic.
 
-## âœ¨ Features
+## ✨ Features
 
-- Automated PDF â†’ individual course JSONs (robust unit/topic extraction)
+- Automated PDF → individual course JSONs (robust unit/topic extraction)
 - Resource extraction (textbooks, reference books, web resources)
 - Course outcomes (CO) extraction and mapping
 - PDF summary generation with reportlab
-- LLM content generation (streamed, cleaned, JSONâ€‘validated)
-- Perâ€‘topic JSON artifacts + consolidated JavaScript map
+- LLM content generation (streamed, cleaned, JSON‑validated)
+- Per‑topic JSON artifacts + consolidated JavaScript map
 - JSON cleaning & fallback for malformed outputs
 - Resume capability (remove completed topics to continue)
 - Clean, organized output structure
 
-## ðŸ“ Current Structure
+## 📁 Current Structure
 ```
 FolderName/
-â”œâ”€â”€ input/                # Place syllabus PDFs here
-â”œâ”€â”€ output/
-â”‚   â”œâ”€â”€ course_json/      # Individual course JSON files (one per PDF)
-â”‚   â””â”€â”€ generated_pdfs/   # PDF summaries with units, outcomes, resources
-â”œâ”€â”€ generated_content/    # Valid per-topic JSON files
-â”œâ”€â”€ generation_errors/    # Raw LLM outputs that could not be cleaned
-â”œâ”€â”€ extract_syllabus.py   # PDF parsing â†’ course JSONs + PDF summaries
-â”œâ”€â”€ app.py                # AI generation â†’ topic JSON + courseDataMap.js
-â”œâ”€â”€ run_pipeline.py       # Orchestrates extraction then generation
-â”œâ”€â”€ requirements.txt      # Python dependencies
-â”œâ”€â”€ README.md             # This file
-â”œâ”€â”€ QUICKSTART.md         # Fast setup steps
-â””â”€â”€ USAGE.md              # Detailed usage & troubleshooting
+├── input/                # Place syllabus PDFs here
+├── output/
+│   ├── course_json/      # Individual course JSON files (one per PDF)
+│   └── generated_pdfs/   # PDF summaries with units, outcomes, resources
+├── generated_content/    # Valid per-topic JSON files
+├── generation_errors/    # Raw LLM outputs that could not be cleaned
+├── extract_syllabus.py   # PDF parsing → course JSONs + PDF summaries
+├── app.py                # AI generation → topic JSON + courseDataMap.js
+├── run_pipeline.py       # Orchestrates extraction then generation
+├── requirements.txt      # Python dependencies
+├── README.md             # This file
+├── QUICKSTART.md         # Fast setup steps
+└── USAGE.md              # Detailed usage & troubleshooting
 ```
 
-## ðŸ›  Prerequisites
+## 🛠 Prerequisites
 
 - Python 3.10+ (virtual environment recommended)
 - Ollama installed and running (`ollama serve` auto on most platforms)
-- Pulled model (default used here: `gemma3:4b`) â€“ choose smaller for speed or larger for depth
+- Pulled model (default used here: `gemma3:4b`) – choose smaller for speed or larger for depth
 
-## âš™ï¸ Installation
+## ⚙️ Installation
 ```bash
 pip install -r requirements.txt
 ollama pull gemma3:4b   # or gemma2:2b / llama3.2 / phi3
 ```
 
-## ðŸš€ Usage Paths
+## 🚀 Usage Paths
 
 ### 1. Full Pipeline (Extract + Generate)
 ```bash
@@ -74,7 +74,7 @@ Reads all JSON files from `output/course_json/` and writes topic files + `course
 ### 4. Resume After Interruption
 Remove completed topics from individual course JSON files in `output/course_json/` or delete unfinished JSONs in `generated_content/` then rerun `python app.py`.
 
-## ðŸ§  Configuration (`app.py`)
+## 🧠 Configuration (`app.py`)
 ```python
 INPUT_FOLDER = Path("output/course_json")
 OLLAMA_MODEL = "gemma3:4b"      # swap for speed/size
@@ -83,14 +83,14 @@ TOPIC_OUTPUT_DIR = Path("generated_content")
 ERROR_OUTPUT_DIR = Path("generation_errors")
 ```
 
-## ðŸ“¤ Output Formats
+## 📤 Output Formats
 
-Perâ€‘topic JSON (example):
+Per‑topic JSON (example):
 ```json
 {
   "notes": [{"title": "Concept", "points": ["Point A", "Point B"]}],
   "formulas": [{"title": "Rate Law", "formula": "v = k[A]", "explanation": "Mechanistic reasoning..."}],
-  "realworld": [{"title": "Industrial Bioreactor", "concept": "Scaleâ€‘up", "description": "Application narrative..."}]
+  "realworld": [{"title": "Industrial Bioreactor", "concept": "Scale‑up", "description": "Application narrative..."}]
 }
 ```
 
@@ -105,13 +105,13 @@ export const courseDataMap = {
 };
 ```
 
-## â± Performance (Typical)
+## ⏱ Performance (Typical)
 
-- Extraction: ~1â€“5 s per PDF
-- Generation: ~5â€“10 min per topic (model + complexity dependent)
-- 300 topics â†’ multiâ€‘hour (overnight recommended)
+- Extraction: ~1–5 s per PDF
+- Generation: ~5–10 min per topic (model + complexity dependent)
+- 300 topics → multi‑hour (overnight recommended)
 
-## ðŸ”§ Troubleshooting Quick Table
+## 🔧 Troubleshooting Quick Table
 
 | Symptom                                  | Fix |
 |------------------------------------------|-----|
@@ -121,7 +121,7 @@ export const courseDataMap = {
 | Many files in `generation_errors/`       | Increase `LLM_RETRIES`, inspect raw output, prune problematic topics |
 | JSON parse failures                      | Cleaner runs automatically; truly broken outputs land in errors folder |
 
-## â™»ï¸ Regeneration Patterns
+## ♻️ Regeneration Patterns
 
 Full reset:
 ```bash
@@ -136,33 +136,33 @@ python extract_syllabus.py
 python app.py
 ```
 
-## ðŸ” Data Quality Tips
+## 🔐 Data Quality Tips
 
 - Ensure syllabus tables have clear Unit/CO markers
 - Use consistent PDF formatting (export from source if possible)
-- Prefer textâ€‘based PDFs (image scans reduce accuracy)
+- Prefer text‑based PDFs (image scans reduce accuracy)
 - Optionally manually adjust individual JSON files in `output/course_json/` before generation
 - Check generated PDF summaries in `output/generated_pdfs/` to verify extraction
 
-## ðŸ¤ Integration
+## 🤝 Integration
 
 Import in a web app:
 ```javascript
 import { courseDataMap } from './courseDataMap.js';
-// traverse courses â†’ subjects â†’ units â†’ topics
+// traverse courses → subjects → units → topics
 ```
 
-## âœ… What To Do Next
+## ✅ What To Do Next
 1. Drop PDFs into `input/`
 2. Run pipeline or individual steps
 3. Inspect first few generated topic JSONs
 4. Adjust model / retry settings if needed
 5. Let full generation run to completion
 
-## ðŸ“„ License & Use
+## 📄 License & Use
 Use freely for internal academic content generation. Add your own license file if distributing.
 
-## ðŸ™‹ Support Checklist Before Asking
+## 🙋 Support Checklist Before Asking
 1. Do JSON files exist in `output/course_json/` and look structured?
 2. Are PDF summaries generated in `output/generated_pdfs/`?
 3. Is Ollama running and model pulled? (`ollama list`)
@@ -172,4 +172,5 @@ Use freely for internal academic content generation. Add your own license file i
 If yes to all and still blocked, inspect a failing raw file and simplify the topic wording.
 
 ---
-Enjoy building rich academic datasets locally. ðŸš€
+Enjoy building rich academic datasets locally. 🚀
+#
