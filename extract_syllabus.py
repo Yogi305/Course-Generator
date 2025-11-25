@@ -235,29 +235,79 @@ def extract_syllabus(pdf_path):
     for unit in units:
         raw = unit["Raw_Content"]
         
-        # Split by commas, but merge items that are part of parentheses
+        # Multi-stage topic splitting:
+        # 1. First split by periods (.) - strongest boundary
+        # 2. Then split by semicolons (;) - medium boundary
+        # 3. Keep commas (,) within same topic - weak/no boundary
+        
         topics = []
         current_topic = ""
         paren_depth = 0
+        i = 0
         
-        for char in raw:
+        while i < len(raw):
+            char = raw[i]
+            
             if char == '(':
                 paren_depth += 1
                 current_topic += char
             elif char == ')':
                 paren_depth -= 1
                 current_topic += char
-            elif char == ',' and paren_depth == 0:
-                # Only split on commas outside of parentheses
+            elif char == '.' and paren_depth == 0:
+                # Check if this is end of sentence (not an abbreviation)
+                # Look ahead to see if next char is space or end of string
+                if i + 1 < len(raw) and raw[i + 1] in [' ', '\n', '\t']:
+                    current_topic += char
+                    # This is end of a topic - split it
+                    if current_topic.strip():
+                        topics.append(current_topic.strip())
+                    current_topic = ""
+                elif i + 1 >= len(raw):
+                    # End of string
+                    current_topic += char
+                    if current_topic.strip():
+                        topics.append(current_topic.strip())
+                    current_topic = ""
+                else:
+                    # Likely an abbreviation like "Dr." or decimal, keep it
+                    current_topic += char
+            elif char == ';' and paren_depth == 0:
+                # Semicolon is also a topic boundary
+                current_topic += char
                 if current_topic.strip():
                     topics.append(current_topic.strip())
                 current_topic = ""
             else:
                 current_topic += char
+            
+            i += 1
         
-        # Add the last topic
+        # Add the last topic if exists
         if current_topic.strip():
             topics.append(current_topic.strip())
+        
+        # Post-process: detect list patterns and split further if needed
+        # Pattern: "word1 - detail1, word2 - detail2, word3 - detail3"
+        # This indicates a list that should be split
+        final_topics = []
+        for topic in topics:
+            # Check if topic has multiple "X – Y" or "X - Y" patterns separated by commas
+            # Count how many times we see "word(s) [–-] word(s)," pattern
+            dash_comma_count = len([m for m in re.finditer(r'\w+\s*[–-]\s*[^,]+,', topic)])
+            
+            # If we have 3+ such patterns, it's likely a list that should be split
+            if dash_comma_count >= 3:
+                # Split by comma, but this is aggressive - only for list-like content
+                parts = topic.split(',')
+                for part in parts:
+                    if part.strip():
+                        final_topics.append(part.strip())
+            else:
+                # Keep as-is
+                final_topics.append(topic)
+        
+        topics = final_topics
         
         # Don't remove first topic - it contains actual content
         # The unit name is derived from course objectives, not from topics
